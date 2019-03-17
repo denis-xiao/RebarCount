@@ -1,5 +1,5 @@
 # AI Rebar Count
-![钢筋数量识别比赛](https://www.datafountain.cn/competitions/332/details/rule)
+[钢筋数量识别比赛](https://www.datafountain.cn/competitions/332/details/rule)
 
 
 ## Requirements
@@ -20,7 +20,7 @@
 `python voc_eval.py work_dirs/cascade_rcnn_dconv_c3-c5_r101_fpn_1x/result.pkl ./configs/pascal_voc/cascade_rcnn_dconv_c3-c5_r101_fpn_1x.py`
 
 
-### test model with ground truth
+### test model（no ground truth）
 `python test_no_ground_truth.py ./configs/pascal_voc/cascade_rcnn_dconv_c3-c5_r101_fpn_1x.py ./work_dirs/cascade_rcnn_dconv_c3-c5_r101_fpn_1x/latest.pth --out work_dirs/result.pkl`
 
 ### convert submissons file
