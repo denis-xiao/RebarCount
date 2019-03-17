@@ -50,7 +50,7 @@ train_cfg = dict(
             ignore_iof_thr=-1),
         sampler=dict(
             type='RandomSampler',
-            num=256,
+            num=512,
             pos_fraction=0.5,
             neg_pos_ub=-1,
             add_gt_as_proposals=False),
@@ -98,7 +98,7 @@ data = dict(
         type=dataset_type,
         ann_file=data_root + 'voc07_train.pkl',
         img_prefix=data_root + 'train2017/',
-        img_scale=(1333, 800),
+        img_scale=(1333, 1000),
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0.5,
@@ -109,7 +109,7 @@ data = dict(
         type=dataset_type,
         ann_file=data_root + 'voc07_val.pkl',
         img_prefix=data_root + 'train2017/',
-        img_scale=(1333, 800),
+        img_scale=(1333, 1000),
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0,
@@ -120,7 +120,7 @@ data = dict(
         type=dataset_type,
         ann_file=data_root + 'voc07_test.pkl',
         img_prefix=data_root + 'train2017/',
-        img_scale=(1333, 800),
+        img_scale=(1333, 1000),
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0,
@@ -136,7 +136,7 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[8, 11])
+    step=[12, 19])
 checkpoint_config = dict(interval=1)
 # yapf:disable
 log_config = dict(
@@ -147,7 +147,7 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 12
+total_epochs = 20
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/faster_ohem_rcnn_r50_fpn_1x'

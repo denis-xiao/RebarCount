@@ -200,20 +200,21 @@ def tpfp_default(det_bboxes, gt_bboxes, gt_ignore, iou_thr, area_ranges=None):
 
 def get_cls_results(det_results, gt_bboxes, gt_labels, gt_ignore, class_id):
     """Get det results and gt information of a certain class."""
-    #print(det_results[0])
     cls_dets = [det[class_id]
                 for det in det_results]  # det bboxes of this class
     cls_gts = []  # gt bboxes of this class
     cls_gt_ignore = []
-    for j in range(len(gt_bboxes)):
+    for j in range(len(gt_bboxes)):# 对于每一张图像的bbox
         gt_bbox = gt_bboxes[j]
         cls_inds = (gt_labels[j] == class_id + 1)
         cls_gt = gt_bbox[cls_inds, :] if gt_bbox.shape[0] > 0 else gt_bbox
         cls_gts.append(cls_gt)
+
         if gt_ignore is None:
             cls_gt_ignore.append(np.zeros(cls_gt.shape[0], dtype=np.int32))
         else:
             cls_gt_ignore.append(gt_ignore[j][cls_inds])
+
     return cls_dets, cls_gts, cls_gt_ignore
 
 
@@ -264,7 +265,7 @@ def eval_map(det_results,
                      if dataset in ['det', 'vid'] else tpfp_default)
         tpfp = [
             tpfp_func(cls_dets[j], cls_gts[j], cls_gt_ignore[j], iou_thr,
-                      area_ranges) for j in range(len(cls_dets))
+                      area_ranges) for j in range(len(cls_dets))   # j 表示图像索引
         ]
         tp, fp = tuple(zip(*tpfp))
         # calculate gt number of each scale, gts ignored or beyond scale

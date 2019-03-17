@@ -4,10 +4,12 @@ import pycocotools.mask as mask_util
 import torch
 import torch.nn as nn
 
+from ..registry import HEADS
 from ..utils import ConvModule
 from mmdet.core import mask_cross_entropy, mask_target
 
 
+@HEADS.register_module
 class FCNMaskHead(nn.Module):
 
     def __init__(self,
@@ -47,7 +49,7 @@ class FCNMaskHead(nn.Module):
                 ConvModule(
                     in_channels,
                     self.conv_out_channels,
-                    3,
+                    self.conv_kernel_size,
                     padding=padding,
                     normalize=normalize,
                     bias=self.with_bias))

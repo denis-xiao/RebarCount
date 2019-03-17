@@ -4,8 +4,10 @@ from mmdet.core import tensor2imgs, bbox_mapping
 from .base import BaseDetector
 from .test_mixins import RPNTestMixin
 from .. import builder
+from ..registry import DETECTORS
 
 
+@DETECTORS.register_module
 class RPN(BaseDetector, RPNTestMixin):
 
     def __init__(self,
@@ -18,7 +20,7 @@ class RPN(BaseDetector, RPNTestMixin):
         super(RPN, self).__init__()
         self.backbone = builder.build_backbone(backbone)
         self.neck = builder.build_neck(neck) if neck is not None else None
-        self.rpn_head = builder.build_anchor_head(rpn_head)
+        self.rpn_head = builder.build_head(rpn_head)
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
         self.init_weights(pretrained=pretrained)
@@ -69,7 +71,7 @@ class RPN(BaseDetector, RPNTestMixin):
         # TODO: remove this restriction
         return proposal_list[0].cpu().numpy()
 
-    def show_result(self, data, result, img_norm_cfg):
+    def show_result(self, data, result, img_norm_cfg, dataset=None, top_k=20):
         """Show RPN proposals on the image.
 
         Although we assume batch size is 1, this method supports arbitrary
@@ -82,4 +84,4 @@ class RPN(BaseDetector, RPNTestMixin):
         for img, img_meta in zip(imgs, img_metas):
             h, w, _ = img_meta['img_shape']
             img_show = img[:h, :w, :]
-            mmcv.imshow_bboxes(img_show, result, top_k=20)
+            mmcv.imshow_bboxes(img_show, result, top_k=top_k)

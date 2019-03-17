@@ -3,14 +3,16 @@ from __future__ import division
 import numpy as np
 import torch
 import torch.nn as nn
+from mmcv.cnn import normal_init
 
 from mmdet.core import (AnchorGenerator, anchor_target, delta2bbox,
                         multi_apply, weighted_cross_entropy, weighted_smoothl1,
                         weighted_binary_cross_entropy,
                         weighted_sigmoid_focal_loss, multiclass_nms)
-from ..utils import normal_init
+from ..registry import HEADS
 
 
+@HEADS.register_module
 class AnchorHead(nn.Module):
     """Anchor-based head (RPN, RetinaNet, SSD, etc.).
 
@@ -49,7 +51,6 @@ class AnchorHead(nn.Module):
         self.anchor_strides = anchor_strides
         self.anchor_base_sizes = list(
             anchor_strides) if anchor_base_sizes is None else anchor_base_sizes
-        #print(self.anchor_scales, self.anchor_ratios, self.anchor_strides, self.anchor_base_sizes)
         self.target_means = target_means
         self.target_stds = target_stds
         self.use_sigmoid_cls = use_sigmoid_cls
@@ -127,8 +128,6 @@ class AnchorHead(nn.Module):
     def loss_single(self, cls_score, bbox_pred, labels, label_weights,
                     bbox_targets, bbox_weights, num_total_samples, cfg):
         # classification loss
-        #print("22222")
-        #print(labels)
         if self.use_sigmoid_cls:
             labels = labels.reshape(-1, self.cls_out_channels)
             label_weights = label_weights.reshape(-1, self.cls_out_channels)
@@ -148,7 +147,6 @@ class AnchorHead(nn.Module):
             else:
                 cls_criterion = weighted_cross_entropy
         if self.use_focal_loss:
-            #print(labels)
             loss_cls = cls_criterion(
                 cls_score,
                 labels,
@@ -179,10 +177,7 @@ class AnchorHead(nn.Module):
         anchor_list, valid_flag_list = self.get_anchors(
             featmap_sizes, img_metas)
         sampling = False if self.use_focal_loss else True
-        #print(self.use_sigmoid_cls)
         label_channels = self.cls_out_channels if self.use_sigmoid_cls else 1
-        #print("000000000")
-        #print(gt_labels)
         cls_reg_targets = anchor_target(
             anchor_list,
             valid_flag_list,
@@ -194,19 +189,12 @@ class AnchorHead(nn.Module):
             gt_labels_list=gt_labels,
             label_channels=label_channels,
             sampling=sampling)
-        #print("----")
-        #print(gt_labels)
         if cls_reg_targets is None:
             return None
-        
         (labels_list, label_weights_list, bbox_targets_list, bbox_weights_list,
          num_total_pos, num_total_neg) = cls_reg_targets
-        #print("00000")
-        #print(labels_list)
         num_total_samples = (num_total_pos if self.use_focal_loss else
                              num_total_pos + num_total_neg)
-        #print("1111111")
-        #print(labels_list)
         losses_cls, losses_reg = multi_apply(
             self.loss_single,
             cls_scores,

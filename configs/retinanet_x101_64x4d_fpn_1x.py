@@ -20,7 +20,7 @@ model = dict(
         num_outs=5),
     bbox_head=dict(
         type='RetinaHead',
-        num_classes=3,
+        num_classes=2,
         in_channels=256,
         stacked_convs=4,
         feat_channels=256,
@@ -49,7 +49,7 @@ test_cfg = dict(
     min_bbox_size=0,
     score_thr=0.05,
     nms=dict(type='nms', iou_thr=0.5),
-    max_per_img=100)
+    max_per_img=600)
 # dataset settings
 dataset_type = 'CustomDataset'
 data_root = 'data/coco/'
@@ -107,8 +107,8 @@ checkpoint_config = dict(interval=1)
 log_config = dict(
     interval=50,
     hooks=[
-        #dict(type='TextLoggerHook'),
-        dict(type='TensorboardLoggerHook')
+        dict(type='TextLoggerHook'),
+        #dict(type='TensorboardLoggerHook')
     ])
 # yapf:enable
 # runtime settings

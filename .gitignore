@@ -8,3 +8,5 @@ __pycache__
 work_dirs
 
 data
+
+nohup.out

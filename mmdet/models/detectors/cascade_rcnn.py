@@ -6,10 +6,13 @@ import torch.nn as nn
 from .base import BaseDetector
 from .test_mixins import RPNTestMixin
 from .. import builder
+from ..registry import DETECTORS
 from mmdet.core import (assign_and_sample, bbox2roi, bbox2result, multi_apply,
                         merge_aug_masks)
+from mmdet.core import build_assigner, build_sampler
 
 
+@DETECTORS.register_module
 class CascadeRCNN(BaseDetector, RPNTestMixin):
 
     def __init__(self,
@@ -27,7 +30,6 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
         assert bbox_roi_extractor is not None
         assert bbox_head is not None
         super(CascadeRCNN, self).__init__()
-
         self.num_stages = num_stages
         self.backbone = builder.build_backbone(backbone)
 
@@ -37,7 +39,7 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
             raise NotImplementedError
 
         if rpn_head is not None:
-            self.rpn_head = builder.build_anchor_head(rpn_head)
+            self.rpn_head = builder.build_head(rpn_head)
 
         if bbox_head is not None:
             self.bbox_roi_extractor = nn.ModuleList()
@@ -52,7 +54,7 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
             for roi_extractor, head in zip(bbox_roi_extractor, bbox_head):
                 self.bbox_roi_extractor.append(
                     builder.build_roi_extractor(roi_extractor))
-                self.bbox_head.append(builder.build_bbox_head(head))
+                self.bbox_head.append(builder.build_head(head))
 
         if mask_head is not None:
             self.mask_roi_extractor = nn.ModuleList()
@@ -67,7 +69,7 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
             for roi_extractor, head in zip(mask_roi_extractor, mask_head):
                 self.mask_roi_extractor.append(
                     builder.build_roi_extractor(roi_extractor))
-                self.mask_head.append(builder.build_mask_head(head))
+                self.mask_head.append(builder.build_head(head))
 
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
@@ -132,13 +134,26 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
             lw = self.train_cfg.stage_loss_weights[i]
 
             # assign gts and sample proposals
-            assign_results, sampling_results = multi_apply(
-                assign_and_sample,
-                proposal_list,
-                gt_bboxes,
-                gt_bboxes_ignore,
-                gt_labels,
-                cfg=rcnn_train_cfg)
+            sampling_results = []
+            if self.with_bbox or self.with_mask:
+                bbox_assigner = build_assigner(rcnn_train_cfg.assigner)
+                bbox_sampler = build_sampler(
+                    rcnn_train_cfg.sampler, context=self, stages = i)
+                num_imgs = img.size(0)
+                if gt_bboxes_ignore is None:
+                    gt_bboxes_ignore = [None for _ in range(num_imgs)]
+                
+                for j in range(num_imgs):
+                    assign_result = bbox_assigner.assign(
+                        proposal_list[j], gt_bboxes[j], gt_bboxes_ignore[j],
+                        gt_labels[j])
+                    sampling_result = bbox_sampler.sample(
+                        assign_result,
+                        proposal_list[j],
+                        gt_bboxes[j],
+                        gt_labels[j],
+                        feats=[lvl_feat[j][None] for lvl_feat in x])
+                    sampling_results.append(sampling_result)
 
             # bbox head forward and loss
             bbox_roi_extractor = self.bbox_roi_extractor[i]

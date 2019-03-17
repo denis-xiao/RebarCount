@@ -4,8 +4,10 @@ import torch
 import torch.nn as nn
 
 from mmdet import ops
+from ..registry import ROI_EXTRACTORS
 
 
+@ROI_EXTRACTORS.register_module
 class SingleRoIExtractor(nn.Module):
     """Extract RoI features from a single level feature map.
 
@@ -29,12 +31,16 @@ class SingleRoIExtractor(nn.Module):
         self.out_channels = out_channels
         self.featmap_strides = featmap_strides
         self.finest_scale = finest_scale
+        #self.my_num_inputs = len(self.featmap_strides)
+        #print(self.num_inputs)
+        #self.num_inputs = len(self.featmap_strides)
 
+    
     @property
     def num_inputs(self):
         """int: Input feature map levels."""
         return len(self.featmap_strides)
-
+    
     def init_weights(self):
         pass
 

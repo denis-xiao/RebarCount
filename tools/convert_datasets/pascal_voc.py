@@ -144,11 +144,13 @@ def main():
             print('processing {} ...'.format(dataset_name))
             cvt_annotations(devkit_path, year, split,
                             osp.join(out_dir, dataset_name + '.pkl'))
+        '''
         if not isinstance(year, list):
             dataset_name = prefix + '_test'
             print('processing {} ...'.format(dataset_name))
             cvt_annotations(devkit_path, year, 'test',
                             osp.join(out_dir, dataset_name + '.pkl'))
+        '''
     print('Done!')
 
 
